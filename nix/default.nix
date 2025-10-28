@@ -31,7 +31,7 @@
   caelestia-cli,
   papirus-icon-theme,
   adwaita-icon-theme,
-  hicolor-icon-theme, # if using pkgs.hicolor-icon-theme
+  hicolor-icon-theme,
   acpi,
   debug ? false,
   withCli ? true,
@@ -77,7 +77,7 @@ let
   extras = stdenv.mkDerivation {
     inherit cmakeBuildType;
     pname = "caelestia-extras${lib.optionalString debug "-debug"}";
-	version = "1.0.0";
+    version = "1.0.0";
     src = lib.fileset.toSource {
       root = ./..;
       fileset = lib.fileset.union ./../CMakeLists.txt ./../extras;
@@ -96,7 +96,7 @@ let
   plugin = stdenv.mkDerivation {
     inherit cmakeBuildType;
     pname = "caelestia-qml-plugin${lib.optionalString debug "-debug"}";
-	version = "1.0.0";
+    version = "1.0.0";
     src = lib.fileset.toSource {
       root = ./..;
       fileset = lib.fileset.union ./../CMakeLists.txt ./../plugin;
@@ -144,17 +144,17 @@ stdenv.mkDerivation rec {
   prePatch = ''
     substituteInPlace assets/pam.d/fprint \
       --replace-fail pam_fprintd.so /run/current-system/sw/lib/security/pam_fprintd.so
-	'';
-
+  '';
 
   postInstall = ''
-    # Wrap the main executable
+    # Wrap the main executable with proper QML module path
     makeWrapper ${quickshell}/bin/qs $out/bin/caelestia-shell \
       --prefix PATH : "${lib.makeBinPath runtimeDeps}" \
       --set FONTCONFIG_FILE "${fontconfig}" \
       --set CAELESTIA_LIB_DIR ${extras}/lib \
       --set CAELESTIA_XKB_RULES_PATH ${xkeyboard-config}/share/xkeyboard-config-2/rules/base.lst \
       --set XDG_DATA_DIRS "${xdgDirs}" \
+      --prefix QML2_IMPORT_PATH : "${plugin}/${qt6.qtbase.qtQmlPrefix}" \
       --add-flags "-p $out/share/caelestia-shell"
 
     mkdir -p $out/lib
